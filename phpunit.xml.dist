@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="./tests/bootstrap.php">
+    <testsuites>
+        <testsuite name="Class loader">
+            <directory>./tests/</directory>
+            <exclude>./tests/fixtures</exclude>
+        </testsuite>
+    </testsuites>
+</phpunit>
