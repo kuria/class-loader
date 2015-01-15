@@ -46,7 +46,7 @@ class ClassLoader
      * Set debug mode
      *
      * @param bool $debug
-     * @return ClassLoader
+     * @return static
      */
     public function setDebug($debug)
     {
@@ -59,7 +59,6 @@ class ClassLoader
      * Load the given class
      *
      * @param string $className
-     * @return bool
      */
     public function loadClass($className)
     {
@@ -90,7 +89,7 @@ class ClassLoader
      *
      * @param string $class
      * @param string $fileName
-     * @return ClassLoader
+     * @return static
      */
     public function addClass($class, $fileName)
     {
@@ -103,7 +102,7 @@ class ClassLoader
      * Register class map
      *
      * @param array $classMap class => file name
-     * @return ClassLoader
+     * @return static
      */
     public function addClassMap(array $classMap)
     {
@@ -119,7 +118,7 @@ class ClassLoader
      * @param string|string[] $paths    one or more paths, without trailing slash
      * @param int             $standard see ClassLoader::PSRx constants
      * @throws \InvalidArgumentException
-     * @return ClassLoader
+     * @return static
      */
     public function addPrefix($prefix, $paths, $standard = self::PSR4)
     {
@@ -166,7 +165,7 @@ class ClassLoader
      *
      * @param array $prefixes array prefix => path(s)
      * @param int   $standard see ClassLoader::PSRx constants
-     * @return ClassLoader
+     * @return static
      */
     public function addPrefixes(array $prefixes, $standard = self::PSR4)
     {
