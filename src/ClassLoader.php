@@ -43,8 +43,6 @@ class ClassLoader
     }
 
     /**
-     * Set debug mode
-     *
      * @param bool $debug
      * @return static
      */
@@ -106,7 +104,7 @@ class ClassLoader
      */
     public function addClassMap(array $classMap)
     {
-        $this->classMap = $this->classMap + $classMap;
+        $this->classMap = $classMap + $this->classMap;
 
         return $this;
     }
