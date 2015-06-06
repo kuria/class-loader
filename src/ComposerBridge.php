@@ -17,7 +17,7 @@ class ComposerBridge
     }
 
     /**
-     * Configure class loader for packages managed by Composer
+     * Add autoload configuration of packages managed by Composer
      *
      * @param ClassLoader $classLoader   class loader instance to configure
      * @param string      $vendorDirPath path to the vendor directory without trailing slash

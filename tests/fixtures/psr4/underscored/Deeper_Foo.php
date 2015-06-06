@@ -2,6 +2,6 @@
 
 namespace Under_Scored;
 
-class WeMustGoDeeper_Sit
+class Deeper_Foo
 {
 }

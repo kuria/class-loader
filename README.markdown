@@ -1,7 +1,7 @@
 Class loader
 ============
 
-PHP class loader that implements both `PSR-0` and `PSR-4`:
+PHP class loader that implements both `PSR-0` and `PSR-4` autoloading:
 
 - https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md
 - https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md
@@ -9,9 +9,11 @@ PHP class loader that implements both `PSR-0` and `PSR-4`:
 
 ## Features
 
-- `PSR-0` and `PSR-4` autoloading
-- composer bridge
+- `PSR-0` autoloading
+- `PSR-4` autoloading
 - class maps
+- HHVM support (recognizes `.hh` files)
+- composer bridge
 - debug mode
 
 
@@ -47,18 +49,23 @@ here is an example.
     // load the class manually
     require 'path/to/src/ClassLoader.php';
 
-    // register it as an autoloader
+    // create an instance
+    $debug = true; // true during development, false in production
+    
+    $classLoader = new ClassLoader($debug);
+
+    // register the autoloader
     $classLoader->register();
 
     // add stuff (examples!)
     $classLoader
 
         // PSR-4 prefix
-        ->addPrefix('Kuria\\Form\\', 'vendor/kuria/form/src')
+        ->addPrefix('Foo\\Bar\\', 'vendor/foo/bar/src')
 
         ->addPrefixes(array(
             'Kuria\\Error\\' => 'vendor/kuria/error/src',
-            'Foo\\Bar\\' => 'example/foo/bar',
+            'Foo\\Baz\\' => 'example/foo/baz',
         ))
 
         // PSR-0 prefix
@@ -85,8 +92,7 @@ here is an example.
 
 If debug mode is enabled, a class/interface/trait check is performed after
 a file is included and an exceptinon is thrown to warn about a potentially
-misspelled namespace / class name.
+misspelled namespace or class name.
 
-To enable debug mode, call:
-
-    $classLoader->setDebug(true);
+To enable debug mode, call `$classLoader->setDebug(true)` or pass `TRUE`
+to the appropriate argument in the constructor.

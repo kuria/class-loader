@@ -48,13 +48,13 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
             'Nonexistent' => $testDir,
         ), ClassLoader::PSR0);
 
-        $this->assertSame($testDir . '/Plain/Lorem.php', $classLoader->findFile('Plain\Lorem'));
-        $this->assertSame($testDir . '/Plain/Lorem.php', $classLoader->findFile('\Plain\Lorem'));
-        $this->assertSame($testDir . '/Plain/WeMustGoDeeper/Ipsum.php', $classLoader->findFile('Plain\WeMustGoDeeper\Ipsum'));
-        $this->assertSame($testDir . '/Underscore/Dolor.php', $classLoader->findFile('Underscore_Dolor'));
-        $this->assertSame($testDir . '/Underscore/WeMustGoDeeper/Sit.php', $classLoader->findFile('Underscore_WeMustGoDeeper_Sit'));
-        $this->assertSame($testDir . '/Combined/WeMustGoDeeper/Amet.php', $classLoader->findFile('Combined\WeMustGoDeeper_Amet'));
-        $this->assertSame($testDir . '/Combined/Underscore_In_Ns/Magnis.php', $classLoader->findFile('Combined\Underscore_In_Ns\Magnis'));
+        $this->assertSame($testDir . '/Plain/Foo.php', $classLoader->findFile('Plain\Foo'));
+        $this->assertSame($testDir . '/Plain/Foo.php', $classLoader->findFile('\Plain\Foo'));
+        $this->assertSame($testDir . '/Plain/Deeper/Foo.php', $classLoader->findFile('Plain\Deeper\Foo'));
+        $this->assertSame($testDir . '/Underscore/Foo.php', $classLoader->findFile('Underscore_Foo'));
+        $this->assertSame($testDir . '/Underscore/Deeper/Foo.php', $classLoader->findFile('Underscore_Deeper_Foo'));
+        $this->assertSame($testDir . '/Combined/Deeper/Foo.php', $classLoader->findFile('Combined\Deeper_Foo'));
+        $this->assertSame($testDir . '/Combined/Underscore_In_Ns/Foo.php', $classLoader->findFile('Combined\Underscore_In_Ns\Foo'));
         $this->assertSame($testDir . '/Foo.php', $classLoader->findFile('Foo'));
         $this->assertFalse($classLoader->findFile('Nonexistent'));
     }
@@ -69,12 +69,12 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
         $classLoader->addPrefix('Under_Scored\\', $testDir . '/underscored');
         $classLoader->addPrefix('Nonexistent\\', $testDir . '/nonexistent');
 
-        $this->assertSame($testDir . '/plain/Lorem.php', $classLoader->findFile('Plain\Lorem'));
-        $this->assertSame($testDir . '/plain/Lorem.php', $classLoader->findFile('\Plain\Lorem'));
-        $this->assertSame($testDir . '/plain/WeMustGoDeeper/Ipsum.php', $classLoader->findFile('Plain\WeMustGoDeeper\Ipsum'));
-        $this->assertSame($testDir . '/underscored/Dolor.php', $classLoader->findFile('Under_Scored\Dolor'));
-        $this->assertSame($testDir . '/underscored/WeMustGoDeeper_Sit.php', $classLoader->findFile('Under_Scored\WeMustGoDeeper_Sit'));
-        $this->assertSame($testDir . '/underscored/WeMustGoDeeper2/Amet_Magnis.php', $classLoader->findFile('Under_Scored\WeMustGoDeeper2\Amet_Magnis'));
+        $this->assertSame($testDir . '/plain/Foo.php', $classLoader->findFile('Plain\Foo'));
+        $this->assertSame($testDir . '/plain/Foo.php', $classLoader->findFile('\Plain\Foo'));
+        $this->assertSame($testDir . '/plain/Deeper/Foo.php', $classLoader->findFile('Plain\Deeper\Foo'));
+        $this->assertSame($testDir . '/underscored/Foo.php', $classLoader->findFile('Under_Scored\Foo'));
+        $this->assertSame($testDir . '/underscored/Deeper_Foo.php', $classLoader->findFile('Under_Scored\Deeper_Foo'));
+        $this->assertSame($testDir . '/underscored/Deeper/Foo_Bar.php', $classLoader->findFile('Under_Scored\Deeper\Foo_Bar'));
         $this->assertFalse($classLoader->findFile('Nonexistent\\Foo'));
     }
 
@@ -84,7 +84,7 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
 
         $testDir = __DIR__ . '/fixtures/psr4';
 
-        $classLoader->addPrefix('X\\', $testDir . '/x');
+        $classLoader->addPrefix('X\\', $testDir . '/incompatible');
 
         $this->assertFalse($classLoader->findFile('X'));
     }
@@ -134,8 +134,8 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
         $classLoader->addPrefix('Plain\\', array($nonExistentDir, $testDirPsr4 . '/plain'));
         $classLoader->addPrefix('Underscore_', array($nonExistentDir, $testDirPsr0), ClassLoader::PSR0);
 
-        $this->assertSame($testDirPsr4 . '/plain/Lorem.php', $classLoader->findFile('Plain\Lorem'));
-        $this->assertSame($testDirPsr0 . '/Underscore/Dolor.php', $classLoader->findFile('Underscore_Dolor'));
+        $this->assertSame($testDirPsr4 . '/plain/Foo.php', $classLoader->findFile('Plain\Foo'));
+        $this->assertSame($testDirPsr0 . '/Underscore/Foo.php', $classLoader->findFile('Underscore_Foo'));
     }
 
     /**
@@ -150,7 +150,6 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
         $testDir = __DIR__ . '/fixtures/psr4';
 
         $classLoader->addPrefix('Plain\\', $testDir . '/plain');
-
         $classLoader->loadClass('Plain\Invalid');
     }
 
@@ -162,7 +161,87 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
         $testDir = __DIR__ . '/fixtures/psr4';
 
         $classLoader->addPrefix('Plain\\', $testDir . '/plain');
-
         $classLoader->loadClass('Plain\Invalid2');
+    }
+
+    public function testPrefixesDisabled()
+    {
+        $classLoader = new ClassLoader();
+        $classLoader->setUsePrefixes(false);
+
+        $fixtureDir = __DIR__ . '/fixtures';
+        $testDirPsr0 = $fixtureDir . '/psr0';
+        $testDirPsr4 = $fixtureDir . '/psr4';
+
+        $classLoader->addPrefix('Plain\\', $testDirPsr4 . '/plain');
+        $classLoader->addPrefix('Plain\\', $testDirPsr0, ClassLoader::PSR0);
+        $this->assertFalse($classLoader->findFile('Plain\Foo'));
+
+        $classLoader->addClass('Plain\Foo', 'test');
+        $this->assertSame('test', $classLoader->findFile('Plain\Foo'));
+    }
+
+    public function testPrefixesEnabled()
+    {
+        $classLoader = new ClassLoader();
+        $classLoader->setUsePrefixes(true);
+
+        $fixtureDir = __DIR__ . '/fixtures';
+        $testDirPsr0 = $fixtureDir . '/psr0';
+        $testDirPsr4 = $fixtureDir . '/psr4';
+
+        $classLoader->addPrefix('Plain\\', $testDirPsr4 . '/plain');
+        $classLoader->addPrefix('Underscore_', $testDirPsr0, ClassLoader::PSR0);
+        $this->assertSame($testDirPsr4 . '/plain/Foo.php', $classLoader->findFile('Plain\Foo'));
+        $this->assertSame($testDirPsr0 . '/Underscore/Foo.php', $classLoader->findFile('Underscore_Foo'));
+
+        $classLoader->addClass('Plain\Foo', 'foo');
+        $classLoader->addClass('Underscore_Foo', 'bar');
+        $this->assertSame('foo', $classLoader->findFile('Plain\Foo'));
+        $this->assertSame('bar', $classLoader->findFile('Underscore_Foo'));
+    }
+
+    public function testDefaultFileSuffixes()
+    {
+        $classLoader = new ClassLoader();
+
+        $this->assertSame($this->getDefaultFileSuffixes(), $classLoader->getFileSuffixes());
+    }
+
+    public function testConfigureFileSuffixes()
+    {
+        $classLoader = new ClassLoader();
+
+        $classLoader->addFileSuffix('.custom');
+        $this->assertSame(array_merge($this->getDefaultFileSuffixes(), array('.custom')), $classLoader->getFileSuffixes());
+
+        $classLoader->setFileSuffixes(array('.custom'));
+        $this->assertSame(array('.custom'), $classLoader->getFileSuffixes());
+    }
+
+    public function testCustomFileSuffix()
+    {
+        $classLoader = new ClassLoader();
+        
+        $fixtureDir = __DIR__ . '/fixtures';
+
+        $testDirPsr0 = $fixtureDir . '/psr0';
+        $testDirPsr4 = $fixtureDir . '/psr4';
+
+        $classLoader->addFileSuffix('.custom');
+
+        $classLoader->addPrefix('Custom\\', $testDirPsr4 . '/custom');
+        $classLoader->addPrefix('Custom\\', $testDirPsr0, ClassLoader::PSR0);
+
+        $this->assertSame($testDirPsr4 . '/custom/Foo.custom', $classLoader->findFile('Custom\Foo'));
+        $this->assertSame($testDirPsr0 . '/Custom/Bar.custom', $classLoader->findFile('Custom\Bar'));
+    }
+
+    private function getDefaultFileSuffixes()
+    {
+        return defined('HHVM_VERSION')
+            ? array('.php', '.hh')
+            : array('.php')
+        ;
     }
 }

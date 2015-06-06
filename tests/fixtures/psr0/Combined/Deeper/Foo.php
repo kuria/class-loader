@@ -2,6 +2,6 @@
 
 namespace Combined;
 
-class WeMustGoDeeper_Amet
+class Deeper_Foo
 {
 }
