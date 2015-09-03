@@ -139,12 +139,12 @@ class ClassLoader
                 && !class_exists($className, false)
                 && !interface_exists($className, false)
                 && (
-                    !function_exists('trait_exists')
+                    PHP_VERSION_ID < 50400
                     || !trait_exists($className, false)
                 )
             ) {
                 throw new \RuntimeException(sprintf(
-                    'Class, interface or trait "%s" was not found in file "%s" - possible typo in namespace or class name',
+                    'Class, interface or trait "%s" was not found in file "%s" - possible typo in the name or namespace',
                     $className,
                     $fileName
                 ));
