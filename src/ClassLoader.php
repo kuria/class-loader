@@ -247,7 +247,7 @@ class ClassLoader
     /**
      * Find a file for the given class name
      *
-     * @param string      $className
+     * @param string $className
      * @return string|bool path to the class or false on failure
      */
     public function findFile($className)
