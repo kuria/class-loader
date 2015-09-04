@@ -7,7 +7,17 @@ PHP class loader that implements both `PSR-0` and `PSR-4` autoloading:
 - https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md
 
 
-## Features
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Usage examples](#usage)
+    - [Registering prefixes](#registration)
+    - [Using the composer bridge](#composer-bridge)
+- [Debug mode](#debug)
+
+
+## <a name="features"></a> Features
 
 - `PSR-0` autoloading
 - `PSR-4` autoloading
@@ -17,32 +27,14 @@ PHP class loader that implements both `PSR-0` and `PSR-4` autoloading:
 - debug mode
 
 
-## Requirements
+## <a name="requirements"></a> Requirements
 
 - PHP 5.3 or newer
 
 
-## Compsoser bridge example
+## <a name="usage"></a> Usage examples
 
-The `ComposerBridge` class can be used to initialize autoloading
-for packages managed by Composer.
-
-    use Kuria\ClassLoader\ClassLoader;
-    use Kuria\ClassLoader\ComposerBridge;
-
-    require __DIR__ . '/vendor/kuria/class-loader/src/ClassLoader.php';
-    require __DIR__ . '/vendor/kuria/class-loader/src/ComposerBridge.php';
-
-    $classLoader = new ClassLoader();
-    $classLoader->register();
-
-    ComposerBridge::configure($classLoader, __DIR__ . '/vendor');
-
-
-## Usage example
-
-If you do not use Composer or need to work with the class loader manually,
-here is an example.
+### <a name="registration"></a> Registering prefixes
 
     use Kuria\ClassLoader\ClassLoader;
 
@@ -88,7 +80,24 @@ here is an example.
     ;
 
 
-## Debug mode
+### <a name="composer-bridge"></a> Using the composer bridge
+
+The `ComposerBridge` class can be used to initialize autoloading
+for packages managed by Composer.
+
+    use Kuria\ClassLoader\ClassLoader;
+    use Kuria\ClassLoader\ComposerBridge;
+
+    require __DIR__ . '/vendor/kuria/class-loader/src/ClassLoader.php';
+    require __DIR__ . '/vendor/kuria/class-loader/src/ComposerBridge.php';
+
+    $classLoader = new ClassLoader();
+    $classLoader->register();
+
+    ComposerBridge::configure($classLoader, __DIR__ . '/vendor');
+
+
+## <a name="debug"></a> Debug mode
 
 If debug mode is enabled, a class/interface/trait check is performed after
 a file is included and an exceptinon is thrown to warn about a potentially
