@@ -2,6 +2,6 @@
 
 namespace Plain;
 
-class Foo
+class FooBar
 {
 }

@@ -2,6 +2,6 @@
 
 namespace Plain\Deeper;
 
-class Foo
+class Baz
 {
 }

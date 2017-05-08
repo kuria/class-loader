@@ -22,6 +22,8 @@ class ClassLoader
     protected $classMap = array();
     /** @var array index => array(array(0 => type, 1 => prefix, 2 => prefix_len, 3 => paths), ...) */
     protected $prefixes = array();
+    /** @var array type => paths */
+    protected $fallbacks = array();
 
     /**
      * @param bool $debug
@@ -115,6 +117,7 @@ class ClassLoader
      * This replaces any previously set suffixes.
      *
      * @param string[] $fileSuffixes
+     * @return static
      */
     public function setFileSuffixes(array $fileSuffixes)
     {
@@ -182,16 +185,27 @@ class ClassLoader
     /**
      * Register a prefix
      *
+     * Adding an empty prefix will register a fallback.
+     *
      * @param string          $prefix class name prefix, should end with \ if it is a namespace
      * @param string|string[] $paths  one or more paths, without trailing slash
      * @param int             $type   see ClassLoader::PSR* constants
-     * @throws \InvalidArgumentException
+     * @throws \UnexpectedValueException if an invalid type is given
+     * @throws \InvalidArgumentException if an invalid prefix is given
      * @return static
      */
     public function addPrefix($prefix, $paths, $type = self::PSR4)
     {
+        if (static::PSR4 !== $type && static::PSR0 !== $type) {
+            throw new \UnexpectedValueException('Invalid prefix type');
+        }
+
         if ('' === $prefix) {
-            throw new \InvalidArgumentException('The prefix must not be empty');
+            foreach ((array) $paths as $path) {
+                $this->fallbacks[$type][] = $path;
+            }
+
+            return $this;
         }
 
         $firstNsSep = strpos($prefix, '\\');
@@ -200,7 +214,7 @@ class ClassLoader
         // determine index
         if (false === $firstNsSep) {
             // no namespace
-            if (self::PSR4 === $type) {
+            if (static::PSR4 === $type) {
                 throw new \InvalidArgumentException(sprintf(
                     'PSR-4 prefixes must contain a top level namespace (got "%s")',
                     $prefix
@@ -211,7 +225,7 @@ class ClassLoader
             $index = $prefix[0];
         } else {
             // has namespace
-            if (self::PSR4 === $type && '\\' !== $prefix[$prefixLength - 1]) {
+            if (static::PSR4 === $type && '\\' !== $prefix[$prefixLength - 1]) {
                 throw new \InvalidArgumentException(sprintf(
                     'PSR-4 prefixes must end with a namespace separator (got "%s")',
                     $prefix
@@ -272,46 +286,32 @@ class ClassLoader
                 $index = substr($className, 0, $firstNsSep);
             }
 
+            // cache PSR-0 subpath
+            $subpathPsr0 = null;
+
             // scan prefixes
             if (
                 isset($this->prefixes[$index])
                 || ($isPsr4Compatible && isset($this->prefixes[$index = $className[0]]))
             ) {
-                $subpathPsr0 = null; // lazy
-
                 foreach ($this->prefixes[$index] as $prefix) {
                     // 0 => type, 1 => prefix, 2 => prefix_len, 3 => paths
                     if (
-                        ($isPsr4 = (self::PSR4 === $prefix[0])) && !$isPsr4Compatible
+                        ($isPsr4 = (static::PSR4 === $prefix[0])) && !$isPsr4Compatible
                         || 0 !== strncmp($prefix[1], $className, $prefix[2])
                     ) {
-                        // no match or we are locating a PSR-0 class
-                        // but the prefix is PSR-4
+                        // no match or we are locating a PSR-0 class but the prefix is PSR-4
                         continue;
                     }
 
                     // compose subpath
                     if ($isPsr4) {
-                        // PSR-4 prefix is not included in the subpath
-                        $subpath = '/' . str_replace('\\', '/', substr($className, $prefix[2]));
+                        // PSR-4 subpath must be built for different prefix lengths
+                        $subpath = $this->buildPsr4Subpath($className, $prefix[2]);
                     } else {
-                        // PSR-0 prefix is included in the subpath
-                        // but the subpath needs to be composed just once
+                        // PSR-0 subpath contains the entire namespace so it needs to be built only once
                         if (null === $subpathPsr0) {
-                            if (false !== $firstNsSep) {
-                                $lastNsSep = strrpos($className, '\\');
-                                $namespace = substr($className, 0, $lastNsSep);
-                                $plainClassName = substr($className, $lastNsSep + 1);
-                            } else {
-                                $namespace = null;
-                                $plainClassName = $className;
-                            }
-
-                            $subpathPsr0 = '/';
-                            if (null !== $namespace) {
-                                $subpathPsr0 .= str_replace('\\', '/', $namespace) . '/';
-                            }
-                            $subpathPsr0 .= str_replace('_', '/', $plainClassName);
+                            $subpathPsr0 = $this->buildPsr0Subpath($className, $firstNsSep);
                         }
 
                         $subpath = $subpathPsr0;
@@ -319,16 +319,86 @@ class ClassLoader
 
                     // iterate over possible paths
                     foreach ($prefix[3] as $path) {
-                        foreach ($this->fileSuffixes as $fileSuffix) {
-                            if (is_file($filePath = $path . $subpath . $fileSuffix)) {
-                                return $filePath;
-                            }
+                        if ($filePath = $this->findFileWithKnownSuffix($path . $subpath)) {
+                            return $filePath;
                         }
                     }
                 }
+            }
 
-                // cache failed lookup
-                $this->classMap[$className] = false;
+            // scan fallbacks
+            if (isset($this->fallbacks[static::PSR0])) {
+                $subpath = $subpathPsr0 ?: $this->buildPsr0Subpath($className, $firstNsSep);
+
+                foreach ($this->fallbacks[static::PSR0] as $fallback) {
+                    if ($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) {
+                        return $filePath;
+                    }
+                }
+            }
+
+            if (isset($this->fallbacks[static::PSR4])) {
+                $subpath = $this->buildPsr4Subpath($className, 0);
+
+                foreach ($this->fallbacks[static::PSR4] as $fallback) {
+                    if ($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) {
+                        return $filePath;
+                    }
+                }
+            }
+
+            // cache failed lookup
+            $this->classMap[$className] = false;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string   $className
+     * @param int|bool $firstNsSep position of first namespace separator or FALSE
+     * @return string
+     */
+    protected function buildPsr0Subpath($className, $firstNsSep)
+    {
+        $subpath = '/';
+
+        if (false !== $firstNsSep) {
+            $lastNsSep = strrpos($className, '\\');
+            $namespace = substr($className, 0, $lastNsSep);
+            $plainClassName = substr($className, $lastNsSep + 1);
+
+            $subpath .= strtr($namespace, '\\', '/') . '/';
+        } else {
+            $plainClassName = $className;
+        }
+
+        $subpath .= strtr($plainClassName, '_', '/');
+
+        return $subpath;
+    }
+
+    /**
+     * @param string $className
+     * @param int $prefixLength
+     * @return string
+     */
+    protected function buildPsr4Subpath($className, $prefixLength)
+    {
+        return '/' . strtr($prefixLength > 0 ? substr($className, $prefixLength) : $className, '\\', '/');
+    }
+
+    /**
+     * Try locating the given path using all registered suffixes
+     *
+     * @param string $pathWithoutSuffix
+     * @return string|bool false on failure
+     */
+    protected function findFileWithKnownSuffix($pathWithoutSuffix)
+    {
+        foreach ($this->fileSuffixes as $fileSuffix) {
+            if (is_file($filePath = $pathWithoutSuffix . $fileSuffix)) {
+                return $filePath;
             }
         }
 
