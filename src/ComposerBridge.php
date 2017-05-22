@@ -29,8 +29,7 @@ class ComposerBridge
 
         $classLoader
             ->addClassMap(require $composerBasePath . 'autoload_classmap.php')
-            ->setUsePrefixes($usePrefixes)
-        ;
+            ->setUsePrefixes($usePrefixes);
 
         if ($usePrefixes) {
             $classLoader->addPrefixes(require $composerBasePath . 'autoload_psr4.php');

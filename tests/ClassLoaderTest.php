@@ -245,7 +245,6 @@ class ClassLoaderTest extends \PHPUnit_Framework_TestCase
     {
         return defined('HHVM_VERSION')
             ? array('.php', '.hh')
-            : array('.php')
-        ;
+            : array('.php');
     }
 }
