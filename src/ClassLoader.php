@@ -104,7 +104,7 @@ class ClassLoader
      */
     public function addFileSuffix($fileSuffix)
     {
-        if (false === array_search($fileSuffix, $this->fileSuffixes, true)) {
+        if (array_search($fileSuffix, $this->fileSuffixes, true) === false) {
             $this->fileSuffixes[] = $fileSuffix;
         }
 
@@ -133,7 +133,7 @@ class ClassLoader
      */
     public function loadClass($className)
     {
-        if (false !== ($fileName = $this->findFile($className))) {
+        if (($fileName = $this->findFile($className)) !== (false)) {
             include $fileName;
 
             // debug check
@@ -200,7 +200,7 @@ class ClassLoader
             throw new \UnexpectedValueException('Invalid prefix type');
         }
 
-        if ('' === $prefix) {
+        if ($prefix === '') {
             foreach ((array) $paths as $path) {
                 $this->fallbacks[$type][] = $path;
             }
@@ -212,7 +212,7 @@ class ClassLoader
         $prefixLength = strlen($prefix);
 
         // determine index
-        if (false === $firstNsSep) {
+        if ($firstNsSep === false) {
             // no namespace
             if (static::PSR4 === $type) {
                 throw new \InvalidArgumentException(sprintf(
@@ -225,7 +225,7 @@ class ClassLoader
             $index = $prefix[0];
         } else {
             // has namespace
-            if (static::PSR4 === $type && '\\' !== $prefix[$prefixLength - 1]) {
+            if (static::PSR4 === $type && $prefix[$prefixLength - 1] !== '\\') {
                 throw new \InvalidArgumentException(sprintf(
                     'PSR-4 prefixes must end with a namespace separator (got "%s")',
                     $prefix
@@ -266,7 +266,7 @@ class ClassLoader
      */
     public function findFile($className)
     {
-        if ('\\' === $className[0]) {
+        if ($className[0] === '\\') {
             $className = substr($className, 1);
         }
 
@@ -278,7 +278,7 @@ class ClassLoader
         if ($this->usePrefixes) {
             // determine index
             $firstNsSep = strpos($className, '\\');
-            if (false === $firstNsSep) {
+            if ($firstNsSep === false) {
                 $isPsr4Compatible = false;
                 $index = $className[0];
             } else {
@@ -298,7 +298,7 @@ class ClassLoader
                     // 0 => type, 1 => prefix, 2 => prefix_len, 3 => paths
                     if (
                         ($isPsr4 = (static::PSR4 === $prefix[0])) && !$isPsr4Compatible
-                        || 0 !== strncmp($prefix[1], $className, $prefix[2])
+                        || strncmp($prefix[1], $className, $prefix[2]) !== 0
                     ) {
                         // no match or we are locating a PSR-0 class but the prefix is PSR-4
                         continue;
@@ -310,7 +310,7 @@ class ClassLoader
                         $subpath = $this->buildPsr4Subpath($className, $prefix[2]);
                     } else {
                         // PSR-0 subpath contains the entire namespace so it needs to be built only once
-                        if (null === $subpathPsr0) {
+                        if ($subpathPsr0 === null) {
                             $subpathPsr0 = $this->buildPsr0Subpath($className, $firstNsSep);
                         }
 
@@ -363,7 +363,7 @@ class ClassLoader
     {
         $subpath = '/';
 
-        if (false !== $firstNsSep) {
+        if ($firstNsSep !== false) {
             $lastNsSep = strrpos($className, '\\');
             $namespace = substr($className, 0, $lastNsSep);
             $plainClassName = substr($className, $lastNsSep + 1);
