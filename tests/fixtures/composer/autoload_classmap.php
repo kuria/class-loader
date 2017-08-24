@@ -2,6 +2,6 @@
 
 $vendorDir = dirname(__DIR__);
 
-return array(
+return [
     'Custom\Bar' => $vendorDir . '/psr0/Custom/Bar.custom',
-);
+];

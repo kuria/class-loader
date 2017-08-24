@@ -1,7 +1,7 @@
 Class loader
 ############
 
-PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_ and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading:
+PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_ and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading.
 
 .. contents::
 
@@ -21,7 +21,7 @@ Features
 Requirements
 ************
 
-- PHP 5.3.0+ or 7.0.0+
+- PHP 7.1.0+
 
 
 Usage examples
@@ -36,7 +36,7 @@ Registering prefixes
 
    use Kuria\ClassLoader\ClassLoader;
 
-   // load the class manually
+   // load the class loader manually
    require '/path/to/src/ClassLoader.php';
 
    // create an instance
@@ -47,41 +47,36 @@ Registering prefixes
    // register the autoloader
    $classLoader->register();
 
-   // add stuff (examples!)
-   $classLoader
+   // PSR-4 prefix
+   $classLoader->addPrefix('Foo\\Bar\\', 'vendor/foo/bar/src');
 
-       // PSR-4 prefix
-       ->addPrefix('Foo\\Bar\\', 'vendor/foo/bar/src')
+   $classLoader->addPrefixes([
+       'Kuria\\Error\\' => 'vendor/kuria/error/src',
+       'Foo\\Baz\\' => 'example/foo/baz',
+   ]);
 
-       ->addPrefixes(array(
-           'Kuria\\Error\\' => 'vendor/kuria/error/src',
-           'Foo\\Baz\\' => 'example/foo/baz',
-       ))
+   // PSR-0 prefix
+   $classLoader->addPrefix('Example\\FooBar\\', 'vendor/example/foobar', ClassLoader::PSR0);
 
-       // PSR-0 prefix
-       ->addPrefix('Example\\FooBar\\', 'vendor/example/foobar', ClassLoader::PSR0)
+   $classLoader->addPrefixes([
+       'Kuria\\Error\\' => 'vendor/kuria/error/src',
+       'Foo_' => 'example/foo',
+   ], ClassLoader::PSR0);
 
-       ->addPrefixes(array(
-           'Kuria\\Error\\' => 'vendor/kuria/error/src',
-           'Foo_' => 'example/foo',
-       ), ClassLoader::PSR0)
+   // PSR-4 fallback (empty prefix)
+   $classLoader->addPrefix('', 'src');
 
-       // PSR-4 fallback (empty prefix)
-       ->addPrefix('', 'src'),
+   // PSR-0 fallback (empty prefix)
+   $classLoader->addPrefix('', 'old-code/example', ClassLoader::PSR0);
 
-       // PSR-0 fallback (empty prefix)
-       ->addPrefix('', 'old-code/example', ClassLoader::PSR0)
+   // single class
+   $classLoader->addClass('Foo', 'path/to/foo.class.php');
 
-       // single class
-       ->addClass('Foo', 'path/to/foo.class.php')
-
-       // class map
-       ->addClassMap(array(
-           'Bar' => 'path/to/bar.class.php',
-           'Baz' => 'path/to/baz.class.php',
-       ))
-
-   ;
+   // class map
+   $classLoader->addClassMap([
+       'Bar' => 'path/to/bar.class.php',
+       'Baz' => 'path/to/baz.class.php',
+   ]);
 
 
 Using the composer bridge

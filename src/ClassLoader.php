@@ -1,11 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\ClassLoader;
 
 /**
- * Class loader (PSR-0, PSR-4)
- *
- * @author ShiraNai7 <shira.cz>
+ * PSR-0 and PSR-4 class loader implementation
  */
 class ClassLoader
 {
@@ -17,19 +15,15 @@ class ClassLoader
     /** @var bool */
     protected $usePrefixes;
     /** @var string[] */
-    protected $fileSuffixes = array('.php');
+    protected $fileSuffixes = ['.php'];
     /** @var array class name => path / false */
-    protected $classMap = array();
+    protected $classMap = [];
     /** @var array index => array(array(0 => type, 1 => prefix, 2 => prefix_len, 3 => paths), ...) */
-    protected $prefixes = array();
+    protected $prefixes = [];
     /** @var array type => paths */
-    protected $fallbacks = array();
+    protected $fallbacks = [];
 
-    /**
-     * @param bool $debug
-     * @param bool $usePrefixes
-     */
-    public function __construct($debug = false, $usePrefixes = true)
+    function __construct(bool $debug = false, bool $usePrefixes = true)
     {
         $this->debug = $debug;
         $this->usePrefixes = $usePrefixes;
@@ -41,99 +35,65 @@ class ClassLoader
 
     /**
      * Register the class loader
-     *
-     * @param bool $prepend
-     * @return bool
      */
-    public function register($prepend = false)
+    function register(bool $prepend = false): bool
     {
-        return spl_autoload_register(array($this, 'loadClass'), true, $prepend);
+        return spl_autoload_register([$this, 'loadClass'], true, $prepend);
     }
 
     /**
      * Unregister the class loader
-     *
-     * @return bool
      */
-    public function unregister()
+    function unregister(): bool
     {
-        return spl_autoload_unregister(array($this, 'loadClass'));
+        return spl_autoload_unregister([$this, 'loadClass']);
     }
 
-    /**
-     * @param bool $debug
-     * @return static
-     */
-    public function setDebug($debug)
+    function isDebugEnabled(): bool
+    {
+        return $this->debug;
+    }
+
+    function setDebug(bool $debug): void
     {
         $this->debug = $debug;
-
-        return $this;
     }
 
     /**
      * Set whether prefixes should be searched when locating a class file
      *
      * If prefix usage is disabled, only the class map is searched.
-     *
-     * @param bool $usePrefixes
-     * @return static
      */
-    public function setUsePrefixes($usePrefixes)
+    function setUsePrefixes(bool $usePrefixes): void
     {
         $this->usePrefixes = $usePrefixes;
-
-        return $this;
     }
 
-    /**
-     * Get file suffixes
-     *
-     * @return string[]
-     */
-    public function getFileSuffixes()
+    function getFileSuffixes(): array
     {
         return $this->fileSuffixes;
     }
 
-    /**
-     * Add file suffix
-     *
-     * @param string $fileSuffix
-     * @return static
-     */
-    public function addFileSuffix($fileSuffix)
+    function addFileSuffix(string $fileSuffix): void
     {
         if (array_search($fileSuffix, $this->fileSuffixes, true) === false) {
             $this->fileSuffixes[] = $fileSuffix;
         }
-
-        return $this;
     }
 
     /**
      * Set file suffixes
      *
      * This replaces any previously set suffixes.
-     *
-     * @param string[] $fileSuffixes
-     * @return static
      */
-    public function setFileSuffixes(array $fileSuffixes)
+    function setFileSuffixes(array $fileSuffixes): void
     {
         $this->fileSuffixes = $fileSuffixes;
-
-        return $this;
     }
 
-    /**
-     * Load the given class
-     *
-     * @param string $className
-     */
-    public function loadClass($className)
+    function loadClass(string $className): void
     {
-        if (($fileName = $this->findFile($className)) !== (false)) {
+        if (($fileName = $this->findFile($className)) !== null) {
             include $fileName;
 
             // debug check
@@ -141,10 +101,7 @@ class ClassLoader
                 $this->debug
                 && !class_exists($className, false)
                 && !interface_exists($className, false)
-                && (
-                    PHP_VERSION_ID < 50400
-                    || !trait_exists($className, false)
-                )
+                && !trait_exists($className, false)
             ) {
                 throw new \RuntimeException(sprintf(
                     'Class, interface or trait "%s" was not found in file "%s" - possible typo in the name or namespace',
@@ -157,44 +114,30 @@ class ClassLoader
 
     /**
      * Register a single class
-     *
-     * @param string $class
-     * @param string $fileName
-     * @return static
      */
-    public function addClass($class, $fileName)
+    function addClass(string $class, string $fileName): void
     {
         $this->classMap[$class] = $fileName;
-
-        return $this;
     }
 
     /**
-     * Register class map
-     *
-     * @param array $classMap class => file name
-     * @return static
+     * Register a class map
      */
-    public function addClassMap(array $classMap)
+    function addClassMap(array $classMap): void
     {
         $this->classMap = $classMap + $this->classMap;
-
-        return $this;
     }
 
     /**
      * Register a prefix
      *
-     * Adding an empty prefix will register a fallback.
+     * - adding an empty prefix will register a fallback.
+     * - see ClassLoader::PSR* constants for available types
      *
-     * @param string          $prefix class name prefix, should end with \ if it is a namespace
-     * @param string|string[] $paths  one or more paths, without trailing slash
-     * @param int             $type   see ClassLoader::PSR* constants
      * @throws \UnexpectedValueException if an invalid type is given
      * @throws \InvalidArgumentException if an invalid prefix is given
-     * @return static
      */
-    public function addPrefix($prefix, $paths, $type = self::PSR4)
+    function addPrefix(string $prefix, $paths, int $type = self::PSR4): void
     {
         if (static::PSR4 !== $type && static::PSR0 !== $type) {
             throw new \UnexpectedValueException('Invalid prefix type');
@@ -205,7 +148,7 @@ class ClassLoader
                 $this->fallbacks[$type][] = $path;
             }
 
-            return $this;
+            return;
         }
 
         $firstNsSep = strpos($prefix, '\\');
@@ -214,7 +157,7 @@ class ClassLoader
         // determine index
         if ($firstNsSep === false) {
             // no namespace
-            if (static::PSR4 === $type) {
+            if ($type === static::PSR4) {
                 throw new \InvalidArgumentException(sprintf(
                     'PSR-4 prefixes must contain a top level namespace (got "%s")',
                     $prefix
@@ -225,7 +168,7 @@ class ClassLoader
             $index = $prefix[0];
         } else {
             // has namespace
-            if (static::PSR4 === $type && $prefix[$prefixLength - 1] !== '\\') {
+            if ($type === static::PSR4 && $prefix[$prefixLength - 1] !== '\\') {
                 throw new \InvalidArgumentException(sprintf(
                     'PSR-4 prefixes must end with a namespace separator (got "%s")',
                     $prefix
@@ -237,34 +180,27 @@ class ClassLoader
         }
 
         // register
-        $this->prefixes[$index][] = array($type, $prefix, $prefixLength, (array) $paths);
-
-        return $this;
+        $this->prefixes[$index][] = [$type, $prefix, $prefixLength, (array) $paths];
     }
 
     /**
-     * Register array of prefixes
+     * Register a prefix => paths map
      *
-     * @param array $prefixes array prefix => path(s)
-     * @param int   $type     see ClassLoader::PSR* constants
-     * @return static
+     * @see ClassLoader::addPrefix()
      */
-    public function addPrefixes(array $prefixes, $type = self::PSR4)
+    function addPrefixes(array $prefixes, int $type = self::PSR4): void
     {
         foreach ($prefixes as $prefix => $paths) {
             $this->addPrefix($prefix, $paths, $type);
         }
-
-        return $this;
     }
 
     /**
      * Find a file for the given class name
      *
-     * @param string $className
-     * @return string|bool path to the class or false on failure
+     * Returns NULL on failure.
      */
-    public function findFile($className)
+    function findFile(string $className): ?string
     {
         if ($className[0] === '\\') {
             $className = substr($className, 1);
@@ -281,6 +217,7 @@ class ClassLoader
             if ($firstNsSep === false) {
                 $isPsr4Compatible = false;
                 $index = $className[0];
+                $firstNsSep = null;
             } else {
                 $isPsr4Compatible = true;
                 $index = substr($className, 0, $firstNsSep);
@@ -297,7 +234,7 @@ class ClassLoader
                 foreach ($this->prefixes[$index] as $prefix) {
                     // 0 => type, 1 => prefix, 2 => prefix_len, 3 => paths
                     if (
-                        ($isPsr4 = (static::PSR4 === $prefix[0])) && !$isPsr4Compatible
+                        ($isPsr4 = ($prefix[0] === static::PSR4)) && !$isPsr4Compatible
                         || strncmp($prefix[1], $className, $prefix[2]) !== 0
                     ) {
                         // no match or we are locating a PSR-0 class but the prefix is PSR-4
@@ -319,7 +256,7 @@ class ClassLoader
 
                     // iterate over possible paths
                     foreach ($prefix[3] as $path) {
-                        if ($filePath = $this->findFileWithKnownSuffix($path . $subpath)) {
+                        if (($filePath = $this->findFileWithKnownSuffix($path . $subpath)) !== null) {
                             return $filePath;
                         }
                     }
@@ -331,7 +268,7 @@ class ClassLoader
                 $subpath = $subpathPsr0 ?: $this->buildPsr0Subpath($className, $firstNsSep);
 
                 foreach ($this->fallbacks[static::PSR0] as $fallback) {
-                    if ($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) {
+                    if (($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) !== null) {
                         return $filePath;
                     }
                 }
@@ -341,7 +278,7 @@ class ClassLoader
                 $subpath = $this->buildPsr4Subpath($className, 0);
 
                 foreach ($this->fallbacks[static::PSR4] as $fallback) {
-                    if ($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) {
+                    if (($filePath = $this->findFileWithKnownSuffix($fallback . $subpath)) !== null) {
                         return $filePath;
                     }
                 }
@@ -351,19 +288,14 @@ class ClassLoader
             $this->classMap[$className] = false;
         }
 
-        return false;
+        return null;
     }
 
-    /**
-     * @param string   $className
-     * @param int|bool $firstNsSep position of first namespace separator or FALSE
-     * @return string
-     */
-    protected function buildPsr0Subpath($className, $firstNsSep)
+    protected function buildPsr0Subpath(string $className, ?int $firstNsSep): string
     {
         $subpath = '/';
 
-        if ($firstNsSep !== false) {
+        if ($firstNsSep !== null) {
             $lastNsSep = strrpos($className, '\\');
             $namespace = substr($className, 0, $lastNsSep);
             $plainClassName = substr($className, $lastNsSep + 1);
@@ -378,12 +310,7 @@ class ClassLoader
         return $subpath;
     }
 
-    /**
-     * @param string $className
-     * @param int $prefixLength
-     * @return string
-     */
-    protected function buildPsr4Subpath($className, $prefixLength)
+    protected function buildPsr4Subpath(string $className, int $prefixLength): string
     {
         return '/' . strtr($prefixLength > 0 ? substr($className, $prefixLength) : $className, '\\', '/');
     }
@@ -391,10 +318,9 @@ class ClassLoader
     /**
      * Try locating the given path using all registered suffixes
      *
-     * @param string $pathWithoutSuffix
-     * @return string|bool false on failure
+     * Returns NULL on failure.
      */
-    protected function findFileWithKnownSuffix($pathWithoutSuffix)
+    protected function findFileWithKnownSuffix(string $pathWithoutSuffix): ?string
     {
         foreach ($this->fileSuffixes as $fileSuffix) {
             if (is_file($filePath = $pathWithoutSuffix . $fileSuffix)) {
@@ -402,6 +328,6 @@ class ClassLoader
             }
         }
 
-        return false;
+        return null;
     }
 }

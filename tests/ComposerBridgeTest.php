@@ -1,22 +1,24 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\ClassLoader;
 
-class ComposerBridgeTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class ComposerBridgeTest extends TestCase
 {
     /** @var bool set by test_autoload_file.php */
-    public static $testAutoloadFileFlag;
-
+    static $testAutoloadFileFlag;
     /** @var ClassLoader */
     private $classLoader;
 
     protected function setUp()
     {
         static::$testAutoloadFileFlag = false;
+
         $this->classLoader = new ClassLoader();
     }
 
-    public function testConfigureClassLoader()
+    function testConfigureClassLoader()
     {
         ComposerBridge::configure($this->classLoader, __DIR__ . '/fixtures');
 
@@ -30,7 +32,7 @@ class ComposerBridgeTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($testDir . '/psr4/underscored/Foo.php', $this->classLoader->findFile('Under_Scored\Foo'));
     }
 
-    public function testConfigureClassLoaderWithoutPrefixes()
+    function testConfigureClassLoaderWithoutPrefixes()
     {
         ComposerBridge::configure($this->classLoader, __DIR__ . '/fixtures', false);
 
@@ -38,7 +40,7 @@ class ComposerBridgeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(static::$testAutoloadFileFlag);
         $this->assertSame($testDir . '/psr0/Custom/Bar.custom', $this->classLoader->findFile('Custom\Bar'));
-        $this->assertFalse($this->classLoader->findFile('Combined\Deeper_Foo'));
-        $this->assertFalse($this->classLoader->findFile('Plain\FooBar'));
+        $this->assertNull($this->classLoader->findFile('Combined\Deeper_Foo'));
+        $this->assertNull($this->classLoader->findFile('Plain\FooBar'));
     }
 }

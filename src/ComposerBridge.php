@@ -1,35 +1,21 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Kuria\ClassLoader;
 
-/**
- * Composer bridge
- *
- * @author ShiraNai7 <shira.cz>
- */
-class ComposerBridge
+abstract class ComposerBridge
 {
-    /**
-     * This is a static class
-     */
-    private function __construct()
-    {
-    }
-
     /**
      * Add autoload configuration of packages managed by Composer
      *
-     * @param ClassLoader $classLoader   class loader instance to configure
-     * @param string      $vendorDirPath path to the vendor directory without trailing slash
-     * @param bool        $usePrefixes   load and enable prefixes 1/0 (disable if using optimized autoload files)
+     * - $vendorDirPath should be a path to the vendor directory without a trailing slash
+     * - if $usePrefixes is FALSE, prefixes will not be loaded (use with optimized autoload files)
      */
-    public static function configure(ClassLoader $classLoader, $vendorDirPath, $usePrefixes = true)
+    static function configure(ClassLoader $classLoader, string $vendorDirPath, bool $usePrefixes = true): void
     {
         $composerBasePath = $vendorDirPath . '/composer/';
 
-        $classLoader
-            ->addClassMap(require $composerBasePath . 'autoload_classmap.php')
-            ->setUsePrefixes($usePrefixes);
+        $classLoader->addClassMap(require $composerBasePath . 'autoload_classmap.php');
+        $classLoader->setUsePrefixes($usePrefixes);
 
         if ($usePrefixes) {
             $classLoader->addPrefixes(require $composerBasePath . 'autoload_psr4.php');
