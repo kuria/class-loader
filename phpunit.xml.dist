@@ -2,7 +2,7 @@
 <phpunit bootstrap="./vendor/autoload.php">
     <testsuites>
         <testsuite name="Class loader">
-            <directory>./tests/</directory>
+            <directory>./tests</directory>
             <exclude>./tests/fixtures</exclude>
         </testsuite>
     </testsuites>
