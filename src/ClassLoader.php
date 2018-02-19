@@ -93,21 +93,11 @@ class ClassLoader
 
     function loadClass(string $className): void
     {
-        if (($fileName = $this->findFile($className)) !== null) {
-            include $fileName;
+        if (($path = $this->findFile($className)) !== null) {
+            include $path;
 
-            // debug check
-            if (
-                $this->debug
-                && !class_exists($className, false)
-                && !interface_exists($className, false)
-                && !trait_exists($className, false)
-            ) {
-                throw new \RuntimeException(sprintf(
-                    'Class, interface or trait "%s" was not found in file "%s" - possible typo in the name or namespace',
-                    $className,
-                    $fileName
-                ));
+            if ($this->debug) {
+                $this->checkLoadedClass($className, $path);
             }
         }
     }
@@ -115,9 +105,9 @@ class ClassLoader
     /**
      * Register a single class
      */
-    function addClass(string $class, string $fileName): void
+    function addClass(string $class, string $path): void
     {
-        $this->classMap[$class] = $fileName;
+        $this->classMap[$class] = $path;
     }
 
     /**
@@ -329,5 +319,54 @@ class ClassLoader
         }
 
         return null;
+    }
+
+    protected function checkLoadedClass(string $className, string $path): void
+    {
+        // check if the class was actually loaded
+        if (
+            !class_exists($className, false)
+            && !interface_exists($className, false)
+            && !trait_exists($className, false)
+        ) {
+            throw new \RuntimeException(sprintf(
+                'Class, interface or trait "%s" was not found in file "%s" - possible typo in the name or namespace',
+                $className,
+                $path
+            ));
+        }
+
+        $reflClass = new \ReflectionClass($className);
+
+        // check class name case sensitivity
+        if ($className !== $reflClass->name) {
+            throw new \RuntimeException(sprintf(
+                "Class, interface or trait \"%s\" was loaded as \"%s\" - this will cause issues on case-sensitive filesystems.\n\n"
+                    . "Likely causes:\n\n"
+                    . " a) wrong class name or namespace specified in \"%s\"\n"
+                    . " b) wrong use statement or literal class name used in another PHP file\n"
+                    . " c) wrong class name or namespace used in autoload-triggering code such as class_exists() or reflection",
+                $reflClass->name,
+                $className,
+                $path
+            ));
+        }
+
+        // check file name case sensitivity
+        $fileName = basename($path);
+        $actualFileName = basename($reflClass->getFileName());
+
+        if ($fileName !== $actualFileName) {
+            throw new \RuntimeException(sprintf(
+                "Class, interface or trait \"%s\" was loaded from file \"%s\", but the actual file name is \"%s\" - this will cause issues on case-sensitive filesystems.\n\n"
+                . "Likely causes:\n\n"
+                . " a) wrong file name\n"
+                . " b) wrong class name specified in \"%s\"",
+                $className,
+                $fileName,
+                $actualFileName,
+                $path
+            ));
+        }
     }
 }

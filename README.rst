@@ -1,7 +1,8 @@
 Class loader
 ############
 
-PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_ and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading.
+PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_
+and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading.
 
 .. contents::
 
@@ -9,8 +10,7 @@ PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-sta
 Features
 ********
 
-- PSR-0 autoloading
-- PSR-4 autoloading
+- PSR-0 and PSR-4 autoloading
 - class maps
 - custom suffixes
 - HHVM support (recognizes ``.hh`` files if used in HHVM)
@@ -104,7 +104,9 @@ The ``ComposerBridge`` class can be used to initialize autoloading for packages 
 Disabling prefixes
 ------------------
 
-If you are using an optimized autoloader, you can pass an optional third parameter to ``configure()`` to disable prefixes completely. Only the class maps and files will be loaded.
+If you are using an optimized autoloader, you can pass an optional third parameter
+to ``configure()`` to disable prefixes completely. Only the class maps and files
+will be loaded.
 
 .. code:: php
 
@@ -116,6 +118,21 @@ If you are using an optimized autoloader, you can pass an optional third paramet
 Debug mode
 ==========
 
-If debug mode is enabled, a class/interface/trait check is performed after a file is included and an exceptinon is thrown to warn about a potentially misspelled namespace or class name.
+If debug mode is enabled, the following checks are performed after a file is loaded:
 
-To enable debug mode, call ``$classLoader->setDebug(true)`` or pass ``true`` to the appropriate constructor argument.
+- whether the class was actually found in the file
+
+  - detects wrong or misspelled namespaces or class names
+
+- whether the class name matches exactly what is defined in the file
+
+  - detects mismatched character case in namespaces or class names or other class
+    name usage, which would cause issues on case-sensitive filesystems
+
+- whether the loaded file name matches the actual file name
+
+  - detects mismatched character case in the file name, which would cause issues
+    on case-sensitive filesystems
+
+To enable debug mode, call ``$classLoader->setDebug(true)`` or pass ``true`` to
+the appropriate constructor argument.

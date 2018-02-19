@@ -1,6 +1,11 @@
 Changelog
 #########
 
+2.1.0
+*****
+
+- detect mismatched character case in class names and filenames in debug mode
+
 
 2.0.0
 *****

@@ -6,12 +6,24 @@ use PHPUnit\Framework\TestCase;
 
 class ClassLoaderTest extends TestCase
 {
+    private const DIR_PSR0 = __DIR__ . '/fixtures/psr0';
+    private const DIR_PSR4 = __DIR__ . '/fixtures/psr4';
+
     /** @var ClassLoader */
     private $classLoader;
 
     protected function setUp()
     {
         $this->classLoader = new ClassLoader();
+    }
+
+    function testDebugModeConfiguration()
+    {
+        $this->assertFalse($this->classLoader->isDebugEnabled());
+
+        $this->classLoader->setDebug(true);
+
+        $this->assertTrue($this->classLoader->isDebugEnabled());
     }
 
     function testRegistration()
@@ -42,49 +54,43 @@ class ClassLoaderTest extends TestCase
 
     function testPsr0Prefix()
     {
-        $testDir = __DIR__ . '/fixtures/psr0';
-
         $this->classLoader->addPrefixes([
-            'Plain\\' => $testDir,
-            'Underscore_' => $testDir,
-            'Combined' => $testDir,
-            'Foo' => $testDir,
-            'Nonexistent' => $testDir,
+            'Plain\\' => self::DIR_PSR0,
+            'Underscore_' => self::DIR_PSR0,
+            'Combined' => self::DIR_PSR0,
+            'Foo' => self::DIR_PSR0,
+            'Nonexistent' => self::DIR_PSR0,
         ], ClassLoader::PSR0);
 
-        $this->assertSame($testDir . '/Plain/Foo.php', $this->classLoader->findFile('Plain\Foo'));
-        $this->assertSame($testDir . '/Plain/Foo.php', $this->classLoader->findFile('\Plain\Foo'));
-        $this->assertSame($testDir . '/Plain/Deeper/Bar.php', $this->classLoader->findFile('Plain\Deeper\Bar'));
-        $this->assertSame($testDir . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
-        $this->assertSame($testDir . '/Underscore/Deeper/Foo.php', $this->classLoader->findFile('Underscore_Deeper_Foo'));
-        $this->assertSame($testDir . '/Combined/Deeper/Foo.php', $this->classLoader->findFile('Combined\Deeper_Foo'));
-        $this->assertSame($testDir . '/Combined/Underscore_In_Ns/Foo.php', $this->classLoader->findFile('Combined\Underscore_In_Ns\Foo'));
-        $this->assertSame($testDir . '/Foo.php', $this->classLoader->findFile('Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Plain/Foo.php', $this->classLoader->findFile('Plain\Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Plain/Foo.php', $this->classLoader->findFile('\Plain\Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Plain/Deeper/Bar.php', $this->classLoader->findFile('Plain\Deeper\Bar'));
+        $this->assertSame(self::DIR_PSR0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Underscore/Deeper/Foo.php', $this->classLoader->findFile('Underscore_Deeper_Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Combined/Deeper/Foo.php', $this->classLoader->findFile('Combined\Deeper_Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Combined/Underscore_In_Ns/Foo.php', $this->classLoader->findFile('Combined\Underscore_In_Ns\Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Foo.php', $this->classLoader->findFile('Foo'));
         $this->assertNull($this->classLoader->findFile('Nonexistent'));
     }
 
     function testPsr4Prefix()
     {
-        $testDir = __DIR__ . '/fixtures/psr4';
+        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR4 . '/plain');
+        $this->classLoader->addPrefix('Under_Scored\\', self::DIR_PSR4 . '/underscored');
+        $this->classLoader->addPrefix('Nonexistent\\', self::DIR_PSR4 . '/nonexistent');
 
-        $this->classLoader->addPrefix('Plain\\', $testDir . '/plain');
-        $this->classLoader->addPrefix('Under_Scored\\', $testDir . '/underscored');
-        $this->classLoader->addPrefix('Nonexistent\\', $testDir . '/nonexistent');
-
-        $this->assertSame($testDir . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
-        $this->assertSame($testDir . '/plain/FooBar.php', $this->classLoader->findFile('\Plain\FooBar'));
-        $this->assertSame($testDir . '/plain/Deeper/Baz.php', $this->classLoader->findFile('Plain\Deeper\Baz'));
-        $this->assertSame($testDir . '/underscored/Foo.php', $this->classLoader->findFile('Under_Scored\Foo'));
-        $this->assertSame($testDir . '/underscored/Deeper_Foo.php', $this->classLoader->findFile('Under_Scored\Deeper_Foo'));
-        $this->assertSame($testDir . '/underscored/Deeper/Foo_Bar.php', $this->classLoader->findFile('Under_Scored\Deeper\Foo_Bar'));
+        $this->assertSame(self::DIR_PSR4 . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
+        $this->assertSame(self::DIR_PSR4 . '/plain/FooBar.php', $this->classLoader->findFile('\Plain\FooBar'));
+        $this->assertSame(self::DIR_PSR4 . '/plain/Deeper/Baz.php', $this->classLoader->findFile('Plain\Deeper\Baz'));
+        $this->assertSame(self::DIR_PSR4 . '/underscored/Foo.php', $this->classLoader->findFile('Under_Scored\Foo'));
+        $this->assertSame(self::DIR_PSR4 . '/underscored/Deeper_Foo.php', $this->classLoader->findFile('Under_Scored\Deeper_Foo'));
+        $this->assertSame(self::DIR_PSR4 . '/underscored/Deeper/Foo_Bar.php', $this->classLoader->findFile('Under_Scored\Deeper\Foo_Bar'));
         $this->assertNull($this->classLoader->findFile('Nonexistent\\Foo'));
     }
 
     function testPsr4IncompatibleClassesDoNotMatchPsr4Prefixes()
     {
-        $testDir = __DIR__ . '/fixtures/psr4';
-
-        $this->classLoader->addPrefix('X\\', $testDir . '/incompatible');
+        $this->classLoader->addPrefix('X\\', self::DIR_PSR4 . '/incompatible');
 
         $this->assertNull(
             $this->classLoader->findFile('X') // X is not in a namespace
@@ -93,24 +99,20 @@ class ClassLoaderTest extends TestCase
 
     function testPsr0Fallback()
     {
-        $testDir = __DIR__ . '/fixtures/psr0';
+        $this->classLoader->addPrefix('', self::DIR_PSR0, ClassLoader::PSR0);
 
-        $this->classLoader->addPrefix('', $testDir, ClassLoader::PSR0);
-
-        $this->assertSame($testDir . '/Foo.php', $this->classLoader->findFile('Foo'));
-        $this->assertSame($testDir . '/Combined/Deeper/Foo.php', $this->classLoader->findFile('Combined\Deeper_Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Foo.php', $this->classLoader->findFile('Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Combined/Deeper/Foo.php', $this->classLoader->findFile('Combined\Deeper_Foo'));
 
     }
 
     function testPsr4Fallback()
     {
-        $testDir = __DIR__ . '/fixtures/psr4';
+        $this->classLoader->addPrefix('', [self::DIR_PSR4 . '/fallback']);
+        $this->classLoader->addPrefix('', [self::DIR_PSR4 . '/fallback2']);
 
-        $this->classLoader->addPrefix('', [$testDir . '/fallback']);
-        $this->classLoader->addPrefix('', [$testDir . '/fallback2']);
-
-        $this->assertSame($testDir . '/fallback/Foo/Deeper/Bar.php', $this->classLoader->findFile('Foo\Deeper\Bar'));
-        $this->assertSame($testDir . '/fallback2/Lorem/Baz.php', $this->classLoader->findFile('Lorem\Baz'));
+        $this->assertSame(self::DIR_PSR4 . '/fallback/Foo/Deeper/Bar.php', $this->classLoader->findFile('Foo\Deeper\Bar'));
+        $this->assertSame(self::DIR_PSR4 . '/fallback2/Lorem/Baz.php', $this->classLoader->findFile('Lorem\Baz'));
     }
 
     function testExceptionOnInvalidType()
@@ -139,26 +141,19 @@ class ClassLoaderTest extends TestCase
 
     function testSkipInvalidPaths()
     {
-        $fixtureDir = __DIR__ . '/fixtures';
-        $testDirPsr0 = $fixtureDir . '/psr0';
-        $testDirPsr4 = $fixtureDir . '/psr4';
-        $nonExistentDir = $fixtureDir . '/non-existent';
+        $nonExistentDir = __DIR__ . '/fixtures/non-existent';
 
-        $this->classLoader->addPrefix('Plain\\', [$nonExistentDir, $testDirPsr4 . '/plain']);
-        $this->classLoader->addPrefix('Underscore_', [$nonExistentDir, $testDirPsr0], ClassLoader::PSR0);
+        $this->classLoader->addPrefix('Plain\\', [$nonExistentDir, self::DIR_PSR4 . '/plain']);
+        $this->classLoader->addPrefix('Underscore_', [$nonExistentDir, self::DIR_PSR0], ClassLoader::PSR0);
 
-        $this->assertSame($testDirPsr4 . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
-        $this->assertSame($testDirPsr0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
+        $this->assertSame(self::DIR_PSR4 . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
+        $this->assertSame(self::DIR_PSR0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
     }
 
-    function testDebugEnabled()
+    function testClassExistenceCheckInDebugMode()
     {
         $this->classLoader->setDebug(true);
-        $this->assertTrue($this->classLoader->isDebugEnabled());
-
-        $testDir = __DIR__ . '/fixtures/psr4';
-
-        $this->classLoader->addPrefix('Plain\\', $testDir . '/plain');
+        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR4 . '/plain');
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('"Plain\Invalid" was not found');
@@ -166,27 +161,62 @@ class ClassLoaderTest extends TestCase
         $this->classLoader->loadClass('Plain\Invalid');
     }
 
-    function testDebugDisabled()
+    function testNonMatchingClassNameInDebugMode()
     {
-        $this->classLoader->setDebug(false);
-        $this->assertFalse($this->classLoader->isDebugEnabled());
+        $this->classLoader->setDebug(true);
+        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
 
-        $testDir = __DIR__ . '/fixtures/psr4';
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Class, interface or trait "BadCase\Badclassname" was loaded as "BadCase\BadClassName"');
 
-        $this->classLoader->addPrefix('Plain\\', $testDir . '/plain');
-        $this->classLoader->loadClass('Plain\Invalid2');
+        $this->classLoader->loadClass('BadCase\BadClassName');
+    }
+
+    function testNonMatchingFileNameInDebugMode()
+    {
+        $this->skipIfCaseSensitiveFs();
+
+        $this->classLoader->setDebug(true);
+        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Class, interface or trait "BadCase\BadFileName" was loaded from file "BadFileName.php", but the actual file name is "Badfilename.php"');
+
+        $this->classLoader->loadClass('BadCase\BadFileName');
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    function testClassNameChecksAreDisabledInNonDebugMode()
+    {
+        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
+        $this->classLoader->loadClass($className = 'BadCase\BadClassName');
+
+        $this->assertTrue(class_exists($className));
+    }
+
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    function testFileNameChecksAreDisabledInNonDebugMode()
+    {
+        $this->skipIfCaseSensitiveFs();
+
+        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
+        $this->classLoader->loadClass($className = 'BadCase\BadFileName');
+
+        $this->assertTrue(class_exists($className));
     }
 
     function testPrefixesDisabled()
     {
         $this->classLoader->setUsePrefixes(false);
 
-        $fixtureDir = __DIR__ . '/fixtures';
-        $testDirPsr0 = $fixtureDir . '/psr0';
-        $testDirPsr4 = $fixtureDir . '/psr4';
-
-        $this->classLoader->addPrefix('Plain\\', $testDirPsr4 . '/plain');
-        $this->classLoader->addPrefix('Plain\\', $testDirPsr0, ClassLoader::PSR0);
+        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR4 . '/plain');
+        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR0, ClassLoader::PSR0);
         $this->assertNull($this->classLoader->findFile('Plain\Foo'));
 
         $this->classLoader->addClass('Plain\Foo', 'test');
@@ -197,14 +227,10 @@ class ClassLoaderTest extends TestCase
     {
         $this->classLoader->setUsePrefixes(true);
 
-        $fixtureDir = __DIR__ . '/fixtures';
-        $testDirPsr0 = $fixtureDir . '/psr0';
-        $testDirPsr4 = $fixtureDir . '/psr4';
-
-        $this->classLoader->addPrefix('Plain\\', $testDirPsr4 . '/plain');
-        $this->classLoader->addPrefix('Underscore_', $testDirPsr0, ClassLoader::PSR0);
-        $this->assertSame($testDirPsr4 . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
-        $this->assertSame($testDirPsr0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
+        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR4 . '/plain');
+        $this->classLoader->addPrefix('Underscore_', self::DIR_PSR0, ClassLoader::PSR0);
+        $this->assertSame(self::DIR_PSR4 . '/plain/FooBar.php', $this->classLoader->findFile('Plain\FooBar'));
+        $this->assertSame(self::DIR_PSR0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
 
         $this->classLoader->addClass('Plain\Foo', 'foo');
         $this->classLoader->addClass('Underscore_Foo', 'bar');
@@ -228,24 +254,26 @@ class ClassLoaderTest extends TestCase
 
     function testCustomFileSuffix()
     {
-        $fixtureDir = __DIR__ . '/fixtures';
-
-        $testDirPsr0 = $fixtureDir . '/psr0';
-        $testDirPsr4 = $fixtureDir . '/psr4';
-
         $this->classLoader->addFileSuffix('.custom');
 
-        $this->classLoader->addPrefix('Custom\\', $testDirPsr4 . '/custom');
-        $this->classLoader->addPrefix('Custom\\', $testDirPsr0, ClassLoader::PSR0);
+        $this->classLoader->addPrefix('Custom\\', self::DIR_PSR4 . '/custom');
+        $this->classLoader->addPrefix('Custom\\', self::DIR_PSR0, ClassLoader::PSR0);
 
-        $this->assertSame($testDirPsr4 . '/custom/Foo.custom', $this->classLoader->findFile('Custom\Foo'));
-        $this->assertSame($testDirPsr0 . '/Custom/Bar.custom', $this->classLoader->findFile('Custom\Bar'));
+        $this->assertSame(self::DIR_PSR4 . '/custom/Foo.custom', $this->classLoader->findFile('Custom\Foo'));
+        $this->assertSame(self::DIR_PSR0 . '/Custom/Bar.custom', $this->classLoader->findFile('Custom\Bar'));
     }
 
-    private function getDefaultFileSuffixes()
+    private function getDefaultFileSuffixes(): array
     {
         return defined('HHVM_VERSION')
             ? ['.php', '.hh']
             : ['.php'];
+    }
+
+    private function skipIfCaseSensitiveFs(): void
+    {
+        if (!is_file(__DIR__ . '/classloadertest.php')) {
+            $this->markTestSkipped('Case-insensitive filesystem is required');
+        }
     }
 }
