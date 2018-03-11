@@ -4,6 +4,9 @@ Class loader
 PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_
 and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading.
 
+.. image:: https://travis-ci.org/kuria/class-loader.svg?branch=master
+   :target: https://travis-ci.org/kuria/class-loader
+
 .. contents::
 
 

@@ -6,8 +6,8 @@ use PHPUnit\Framework\TestCase;
 
 class ClassLoaderTest extends TestCase
 {
-    private const DIR_PSR0 = __DIR__ . '/fixtures/psr0';
-    private const DIR_PSR4 = __DIR__ . '/fixtures/psr4';
+    private const DIR_PSR0 = __DIR__ . '/Fixtures/psr-0';
+    private const DIR_PSR4 = __DIR__ . '/Fixtures/psr-4';
 
     /** @var ClassLoader */
     private $classLoader;
@@ -103,7 +103,6 @@ class ClassLoaderTest extends TestCase
 
         $this->assertSame(self::DIR_PSR0 . '/Foo.php', $this->classLoader->findFile('Foo'));
         $this->assertSame(self::DIR_PSR0 . '/Combined/Deeper/Foo.php', $this->classLoader->findFile('Combined\Deeper_Foo'));
-
     }
 
     function testPsr4Fallback()
@@ -141,7 +140,7 @@ class ClassLoaderTest extends TestCase
 
     function testSkipInvalidPaths()
     {
-        $nonExistentDir = __DIR__ . '/fixtures/non-existent';
+        $nonExistentDir = __DIR__ . '/Fixtures/non-existent';
 
         $this->classLoader->addPrefix('Plain\\', [$nonExistentDir, self::DIR_PSR4 . '/plain']);
         $this->classLoader->addPrefix('Underscore_', [$nonExistentDir, self::DIR_PSR0], ClassLoader::PSR0);
@@ -180,7 +179,10 @@ class ClassLoaderTest extends TestCase
         $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Class, interface or trait "BadCase\BadFileName" was loaded from file "BadFileName.php", but the actual file name is "Badfilename.php"');
+        $this->expectExceptionMessage(
+            'Class, interface or trait "BadCase\BadFileName" was loaded from file "BadFileName.php",'
+                . ' but the actual file name is "Badfilename.php"'
+        );
 
         $this->classLoader->loadClass('BadCase\BadFileName');
     }

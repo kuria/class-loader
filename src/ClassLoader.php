@@ -11,23 +11,23 @@ class ClassLoader
     const PSR4 = 1;
 
     /** @var bool */
-    protected $debug;
+    private $debug;
     /** @var bool */
-    protected $usePrefixes;
+    private $usePrefixes;
     /** @var string[] */
-    protected $fileSuffixes = ['.php'];
+    private $fileSuffixes = ['.php'];
     /** @var array class name => path / false */
-    protected $classMap = [];
+    private $classMap = [];
     /** @var array index => array(array(0 => type, 1 => prefix, 2 => prefix_len, 3 => paths), ...) */
-    protected $prefixes = [];
+    private $prefixes = [];
     /** @var array type => paths */
-    protected $fallbacks = [];
+    private $fallbacks = [];
 
     function __construct(bool $debug = false, bool $usePrefixes = true)
     {
         $this->debug = $debug;
         $this->usePrefixes = $usePrefixes;
-        
+
         if (defined('HHVM_VERSION')) {
             $this->fileSuffixes[] = '.hh';
         }
@@ -93,7 +93,9 @@ class ClassLoader
 
     function loadClass(string $className): void
     {
-        if (($path = $this->findFile($className)) !== null) {
+        $path = $this->findFile($className);
+
+        if ($path !== null) {
             include $path;
 
             if ($this->debug) {
@@ -281,7 +283,7 @@ class ClassLoader
         return null;
     }
 
-    protected function buildPsr0Subpath(string $className, ?int $firstNsSep): string
+    private function buildPsr0Subpath(string $className, ?int $firstNsSep): string
     {
         $subpath = '/';
 
@@ -300,7 +302,7 @@ class ClassLoader
         return $subpath;
     }
 
-    protected function buildPsr4Subpath(string $className, int $prefixLength): string
+    private function buildPsr4Subpath(string $className, int $prefixLength): string
     {
         return '/' . strtr($prefixLength > 0 ? substr($className, $prefixLength) : $className, '\\', '/');
     }
@@ -310,7 +312,7 @@ class ClassLoader
      *
      * Returns NULL on failure.
      */
-    protected function findFileWithKnownSuffix(string $pathWithoutSuffix): ?string
+    private function findFileWithKnownSuffix(string $pathWithoutSuffix): ?string
     {
         foreach ($this->fileSuffixes as $fileSuffix) {
             if (is_file($filePath = $pathWithoutSuffix . $fileSuffix)) {
@@ -321,7 +323,7 @@ class ClassLoader
         return null;
     }
 
-    protected function checkLoadedClass(string $className, string $path): void
+    private function checkLoadedClass(string $className, string $path): void
     {
         // check if the class was actually loaded
         if (
@@ -341,7 +343,8 @@ class ClassLoader
         // check class name case sensitivity
         if ($className !== $reflClass->name) {
             throw new \RuntimeException(sprintf(
-                "Class, interface or trait \"%s\" was loaded as \"%s\" - this will cause issues on case-sensitive filesystems.\n\n"
+                "Class, interface or trait \"%s\" was loaded as \"%s\""
+                    . " - this will cause issues on case-sensitive filesystems.\n\n"
                     . "Likely causes:\n\n"
                     . " a) wrong class name or namespace specified in \"%s\"\n"
                     . " b) wrong use statement or literal class name used in another PHP file\n"
@@ -358,7 +361,8 @@ class ClassLoader
 
         if ($fileName !== $actualFileName) {
             throw new \RuntimeException(sprintf(
-                "Class, interface or trait \"%s\" was loaded from file \"%s\", but the actual file name is \"%s\" - this will cause issues on case-sensitive filesystems.\n\n"
+                "Class, interface or trait \"%s\" was loaded from file \"%s\", but the actual file name is \"%s\""
+                . " - this will cause issues on case-sensitive filesystems.\n\n"
                 . "Likely causes:\n\n"
                 . " a) wrong file name\n"
                 . " b) wrong class name specified in \"%s\"",
