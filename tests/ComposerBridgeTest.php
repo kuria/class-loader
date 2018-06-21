@@ -20,7 +20,7 @@ class ComposerBridgeTest extends TestCase
         $this->classLoader = new ClassLoader();
     }
 
-    function testConfigureClassLoader()
+    function testShouldConfigureClassLoader()
     {
         ComposerBridge::configure($this->classLoader, self::TEST_DIR);
 
@@ -32,7 +32,7 @@ class ComposerBridgeTest extends TestCase
         $this->assertSame(self::TEST_DIR . '/psr-4/underscored/Foo.php', $this->classLoader->findFile('Under_Scored\Foo'));
     }
 
-    function testConfigureClassLoaderWithoutPrefixes()
+    function testShouldConfigureClassLoaderWithoutPrefixes()
     {
         ComposerBridge::configure($this->classLoader, self::TEST_DIR, false);
 
