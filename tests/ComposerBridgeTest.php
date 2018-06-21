@@ -10,6 +10,7 @@ class ComposerBridgeTest extends TestCase
 
     /** @var bool set by test_autoload_file.php */
     static $testAutoloadFileFlag;
+
     /** @var ClassLoader */
     private $classLoader;
 

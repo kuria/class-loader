@@ -12,14 +12,19 @@ class ClassLoader
 
     /** @var bool */
     private $debug;
+
     /** @var bool */
     private $usePrefixes;
+
     /** @var string[] */
     private $fileSuffixes = ['.php'];
+
     /** @var array class name => path / false */
     private $classMap = [];
+
     /** @var array index => array(array(0 => type, 1 => prefix, 2 => prefix_len, 3 => paths), ...) */
     private $prefixes = [];
+
     /** @var array type => paths */
     private $fallbacks = [];
 
