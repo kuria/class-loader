@@ -1,7 +1,3 @@
 <?php
 
-namespace Combined;
-
-class Deeper_Foo
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);

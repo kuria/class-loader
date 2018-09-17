@@ -1,6 +1,13 @@
 Changelog
 #########
 
+4.0.0
+*****
+
+- dropped HHVM support
+- removed debug file name check as it was not portable
+
+
 3.0.0
 *****
 

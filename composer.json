@@ -1,13 +1,13 @@
 {
     "name": "kuria/class-loader",
     "description": "Class loader implementation (PSR-0, PSR-4)",
-    "keywords": ["autoload", "class loader", "PSR-0", "PSR-4"],
+    "keywords": ["autoload", "class", "loader", "class-loader", "PSR-0", "PSR-4"],
     "license": "MIT",
     "require": {
         "php": ">=7.1"
     },
     "require-dev": {
-        "kuria/dev-meta": "^0.4.0"
+        "kuria/dev-meta": "^0.5"
     },
     "autoload": {
         "psr-4": {

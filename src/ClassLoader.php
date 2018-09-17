@@ -32,10 +32,6 @@ class ClassLoader
     {
         $this->debug = $debug;
         $this->usePrefixes = $usePrefixes;
-
-        if (defined('HHVM_VERSION')) {
-            $this->fileSuffixes[] = '.hh';
-        }
     }
 
     /**
@@ -343,10 +339,10 @@ class ClassLoader
             ));
         }
 
-        $reflClass = new \ReflectionClass($className);
+        $actualClassName = (new \ReflectionClass($className))->name;
 
         // check class name case sensitivity
-        if ($className !== $reflClass->name) {
+        if ($className !== $actualClassName) {
             throw new \RuntimeException(sprintf(
                 "Class, interface or trait \"%s\" was loaded as \"%s\""
                     . " - this will cause issues on case-sensitive filesystems.\n\n"
@@ -354,26 +350,8 @@ class ClassLoader
                     . " a) wrong class name or namespace specified in \"%s\"\n"
                     . " b) wrong use statement or literal class name used in another PHP file\n"
                     . " c) wrong class name or namespace used in autoload-triggering code such as class_exists() or reflection",
-                $reflClass->name,
+                $actualClassName,
                 $className,
-                $path
-            ));
-        }
-
-        // check file name case sensitivity
-        $fileName = basename($path);
-        $actualFileName = basename($reflClass->getFileName());
-
-        if ($fileName !== $actualFileName) {
-            throw new \RuntimeException(sprintf(
-                "Class, interface or trait \"%s\" was loaded from file \"%s\", but the actual file name is \"%s\""
-                . " - this will cause issues on case-sensitive filesystems.\n\n"
-                . "Likely causes:\n\n"
-                . " a) wrong file name\n"
-                . " b) wrong class name specified in \"%s\"",
-                $className,
-                $fileName,
-                $actualFileName,
                 $path
             ));
         }

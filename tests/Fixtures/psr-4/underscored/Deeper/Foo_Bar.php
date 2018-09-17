@@ -1,7 +1,3 @@
 <?php
 
-namespace Under_Scored\Deeper;
-
-class Foo_Bar
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);

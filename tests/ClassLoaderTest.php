@@ -2,12 +2,13 @@
 
 namespace Kuria\ClassLoader;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class ClassLoaderTest extends TestCase
+class ClassLoaderTest extends Test
 {
     private const DIR_PSR0 = __DIR__ . '/Fixtures/psr-0';
     private const DIR_PSR4 = __DIR__ . '/Fixtures/psr-4';
+    private const DIR_LOAD_TEST = __DIR__ . '/Fixtures/load-test';
 
     /** @var ClassLoader */
     private $classLoader;
@@ -149,42 +150,38 @@ class ClassLoaderTest extends TestCase
         $this->assertSame(self::DIR_PSR0 . '/Underscore/Foo.php', $this->classLoader->findFile('Underscore_Foo'));
     }
 
+    function testShouldLoadClassInDebugMode()
+    {
+        $this->classLoader->setDebug(true);
+        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
+        $this->classLoader->loadClass($className = 'Kuria\ClassLoader\LoadTest\FooBar');
+
+        $this->assertTrue(class_exists($className));
+    }
+
     function testShouldPerformClassExistenceCheckInDebugMode()
     {
         $this->classLoader->setDebug(true);
-        $this->classLoader->addPrefix('Plain\\', self::DIR_PSR4 . '/plain');
+        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('"Plain\Invalid" was not found');
+        $this->expectExceptionMessage('"Kuria\ClassLoader\LoadTest\InvalidClassName" was not found');
 
-        $this->classLoader->loadClass('Plain\Invalid');
+        $this->classLoader->loadClass('Kuria\ClassLoader\LoadTest\InvalidClassName');
     }
 
     function testShouldDetectNonMatchingClassNameInDebugMode()
     {
         $this->classLoader->setDebug(true);
-        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Class, interface or trait "BadCase\Badclassname" was loaded as "BadCase\BadClassName"');
-
-        $this->classLoader->loadClass('BadCase\BadClassName');
-    }
-
-    function testShouldDetectNonMatchingFileNameInDebugMode()
-    {
-        $this->skipIfCaseSensitiveFs();
-
-        $this->classLoader->setDebug(true);
-        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
+        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage(
-            'Class, interface or trait "BadCase\BadFileName" was loaded from file "BadFileName.php",'
-                . ' but the actual file name is "Badfilename.php"'
+            'Class, interface or trait "Kuria\ClassLoader\LoadTest\Badclassnamecase"'
+            . ' was loaded as "Kuria\ClassLoader\LoadTest\BadClassNameCase"'
         );
 
-        $this->classLoader->loadClass('BadCase\BadFileName');
+        $this->classLoader->loadClass('Kuria\ClassLoader\LoadTest\BadClassNameCase');
     }
 
     /**
@@ -193,22 +190,8 @@ class ClassLoaderTest extends TestCase
      */
     function testShouldNotPerformClassNameChecksInNonDebugMode()
     {
-        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
-        $this->classLoader->loadClass($className = 'BadCase\BadClassName');
-
-        $this->assertTrue(class_exists($className));
-    }
-
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    function testShouldNotPerformFileNameChecksInNonDebugMode()
-    {
-        $this->skipIfCaseSensitiveFs();
-
-        $this->classLoader->addPrefix('BadCase\\', self::DIR_PSR4 . '/bad_case');
-        $this->classLoader->loadClass($className = 'BadCase\BadFileName');
+        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
+        $this->classLoader->loadClass($className = 'Kuria\ClassLoader\LoadTest\BadClassNameCase');
 
         $this->assertTrue(class_exists($className));
     }
@@ -267,15 +250,6 @@ class ClassLoaderTest extends TestCase
 
     private function getDefaultFileSuffixes(): array
     {
-        return defined('HHVM_VERSION')
-            ? ['.php', '.hh']
-            : ['.php'];
-    }
-
-    private function skipIfCaseSensitiveFs(): void
-    {
-        if (!is_file(__DIR__ . '/classloadertest.php')) {
-            $this->markTestSkipped('Case-insensitive filesystem is required');
-        }
+        return ['.php'];
     }
 }

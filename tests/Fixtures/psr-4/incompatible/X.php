@@ -1,5 +1,3 @@
 <?php
 
-class X
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);

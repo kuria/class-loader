@@ -1,7 +1,3 @@
 <?php
 
-namespace Under_Scored;
-
-class Foo
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);

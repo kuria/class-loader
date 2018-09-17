@@ -4,8 +4,8 @@ Class loader
 PHP class loader that implements both `PSR-0 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-0.md>`_
 and `PSR-4 <https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-4-autoloader.md>`_ autoloading.
 
-.. image:: https://travis-ci.org/kuria/class-loader.svg?branch=master
-   :target: https://travis-ci.org/kuria/class-loader
+.. image:: https://travis-ci.com/kuria/class-loader.svg?branch=master
+   :target: https://travis-ci.com/kuria/class-loader
 
 .. contents::
 
@@ -16,7 +16,6 @@ Features
 - PSR-0 and PSR-4 autoloading
 - class maps
 - custom suffixes
-- HHVM support (recognizes ``.hh`` files if used in HHVM)
 - composer bridge
 - debug mode
 
@@ -131,11 +130,6 @@ If debug mode is enabled, the following checks are performed after a file is loa
 
   - detects mismatched character case in namespaces or class names or other class
     name usage, which would cause issues on case-sensitive filesystems
-
-- whether the loaded file name matches the actual file name
-
-  - detects mismatched character case in the file name, which would cause issues
-    on case-sensitive filesystems
 
 To enable debug mode, call ``$classLoader->setDebug(true)`` or pass ``true`` to
 the appropriate constructor argument.

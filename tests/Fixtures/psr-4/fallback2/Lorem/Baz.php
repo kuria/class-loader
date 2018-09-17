@@ -1,7 +1,3 @@
 <?php
 
-namespace Lorem;
-
-class Baz
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);

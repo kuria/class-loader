@@ -2,9 +2,9 @@
 
 namespace Kuria\ClassLoader;
 
-use PHPUnit\Framework\TestCase;
+use Kuria\DevMeta\Test;
 
-class ComposerBridgeTest extends TestCase
+class ComposerBridgeTest extends Test
 {
     private const TEST_DIR = __DIR__ . DIRECTORY_SEPARATOR . 'Fixtures';
 

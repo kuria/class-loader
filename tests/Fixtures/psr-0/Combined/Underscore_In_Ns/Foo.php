@@ -1,7 +1,3 @@
 <?php
 
-namespace Combined\Underscore_In_Ns;
-
-class Foo
-{
-}
+\Kuria\ClassLoader\test_fail_file_included(__FILE__);
