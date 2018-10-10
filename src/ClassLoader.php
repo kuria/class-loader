@@ -132,7 +132,7 @@ class ClassLoader
      */
     function addPrefix(string $prefix, $paths, int $type = self::PSR4): void
     {
-        if (static::PSR4 !== $type && static::PSR0 !== $type) {
+        if ($type !== static::PSR4 && $type !== static::PSR0) {
             throw new \UnexpectedValueException('Invalid prefix type');
         }
 
