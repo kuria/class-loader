@@ -120,16 +120,10 @@ will be loaded.
 Debug mode
 ==========
 
-If debug mode is enabled, the following checks are performed after a file is loaded:
+If debug mode is enabled, a check is performed after a file has been loaded
+to determine whether the class, interface or trait was defined in that file.
 
-- whether the class was actually found in the file
-
-  - detects wrong or misspelled namespaces or class names
-
-- whether the class name matches exactly what is defined in the file
-
-  - detects mismatched character case in namespaces or class names or other class
-    name usage, which would cause issues on case-sensitive filesystems
+This helps detect wrong or misspelled namespaces or class names.
 
 To enable debug mode, call ``$classLoader->setDebug(true)`` or pass ``true`` to
 the appropriate constructor argument.

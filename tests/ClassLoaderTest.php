@@ -170,32 +170,6 @@ class ClassLoaderTest extends Test
         $this->classLoader->loadClass('Kuria\ClassLoader\LoadTest\InvalidClassName');
     }
 
-    function testShouldDetectNonMatchingClassNameInDebugMode()
-    {
-        $this->classLoader->setDebug(true);
-        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage(
-            'Class, interface or trait "Kuria\ClassLoader\LoadTest\Badclassnamecase"'
-            . ' was loaded as "Kuria\ClassLoader\LoadTest\BadClassNameCase"'
-        );
-
-        $this->classLoader->loadClass('Kuria\ClassLoader\LoadTest\BadClassNameCase');
-    }
-
-    /**
-     * @runInSeparateProcess
-     * @preserveGlobalState disabled
-     */
-    function testShouldNotPerformClassNameChecksInNonDebugMode()
-    {
-        $this->classLoader->addPrefix('Kuria\\ClassLoader\\LoadTest\\', self::DIR_LOAD_TEST);
-        $this->classLoader->loadClass($className = 'Kuria\ClassLoader\LoadTest\BadClassNameCase');
-
-        $this->assertTrue(class_exists($className));
-    }
-
     function testShouldIgnorePrefixesIfPrefixesAreDisabled()
     {
         $this->classLoader->setUsePrefixes(false);

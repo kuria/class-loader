@@ -1,6 +1,12 @@
 Changelog
 #########
 
+4.1.0
+*****
+
+- removed debug mode class name check (there are static analysis tools that can do this better)
+
+
 4.0.0
 *****
 

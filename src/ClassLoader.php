@@ -338,22 +338,5 @@ class ClassLoader
                 $path
             ));
         }
-
-        $actualClassName = (new \ReflectionClass($className))->name;
-
-        // check class name case sensitivity
-        if ($className !== $actualClassName) {
-            throw new \RuntimeException(sprintf(
-                "Class, interface or trait \"%s\" was loaded as \"%s\""
-                    . " - this will cause issues on case-sensitive filesystems.\n\n"
-                    . "Likely causes:\n\n"
-                    . " a) wrong class name or namespace specified in \"%s\"\n"
-                    . " b) wrong use statement or literal class name used in another PHP file\n"
-                    . " c) wrong class name or namespace used in autoload-triggering code such as class_exists() or reflection",
-                $actualClassName,
-                $className,
-                $path
-            ));
-        }
     }
 }
