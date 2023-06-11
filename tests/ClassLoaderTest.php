@@ -51,6 +51,7 @@ class ClassLoaderTest extends Test
         $this->assertSame($fileName, $this->classLoader->findFile($className));
         $this->assertSame($fileName2, $this->classLoader->findFile($className2));
         $this->assertNull($this->classLoader->findFile('Unknown\Class'));
+        $this->assertNull($this->classLoader->findFile('Unknown\Class')); // verify cache handling
     }
 
     function testShouldHandlePsr0Prefix()

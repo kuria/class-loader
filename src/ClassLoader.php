@@ -200,8 +200,8 @@ class ClassLoader
         }
 
         // check class map
-        if (isset($this->classMap[$className])) {
-            return $this->classMap[$className];
+        if (($path = $this->classMap[$className] ?? null) !== null) {
+            return $path !== false ? $path : null;
         }
 
         if ($this->usePrefixes) {

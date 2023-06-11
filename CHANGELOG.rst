@@ -5,6 +5,7 @@ Changelog
 *****
 
 - removed debug mode class name check (there are static analysis tools that can do this better)
+- fixed return value of ``ClassLoader::findFile()`` when a nonexistent class is cached
 
 
 4.0.0
